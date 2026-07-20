@@ -57,6 +57,13 @@ Pour entrer dans l'espace operateur
 # IDENTIFIANT: operateur
 # MOT DE PASSE : operateur123
 
+## Cote client 
+modification du dashboard.php
+    -case a coche sur MultiTranfert
+    -modification de operationController
+    -Calcul de comission 
+
+
 
 Herizo a pris la gestion du côté client.
 Moi j'ai pris la gestion du côté opérateur.
