@@ -23,8 +23,12 @@ $routes->group('', ['namespace' => 'App\Controllers\operator'], static function 
     $routes->get('operator/clients', 'OperateurController::clients');
     $routes->get('operator/prefixes', 'OperateurController::prefixes');
     $routes->get('operator/baremes', 'OperateurController::baremes');
+    $routes->get('operator/commissions', 'OperateurController::commissions');
+    $routes->get('operator/decompte', 'OperateurController::decompte');
     $routes->post('operator/addPrefix', 'OperateurController::addPrefix');
     $routes->post('operator/saveBareme', 'OperateurController::saveBareme');
+    $routes->post('operator/saveCommission', 'OperateurController::saveCommission');
+    $routes->post('operator/marquerEnvoye', 'OperateurController::marquerEnvoye');
 });
 
 
@@ -41,6 +45,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Client'], static function ($
         $routes->post('depot', 'OperationController::depot');
         $routes->post('retrait', 'OperationController::retrait');
         $routes->post('transfert', 'OperationController::transfert');
+        $routes->post('transfertMultiple', 'OperationController::transfertMultiple');
         
         // Historique
         $routes->get('history', 'HistoryController::index');

@@ -380,6 +380,14 @@
                 <span class="nav-icon">💰</span>
                 <span>Barèmes des frais</span>
             </a>
+            <a href="<?= base_url('operator/commissions') ?>" class="nav-link <?= ($current_page === 'commissions') ? 'active' : '' ?>">
+                <span class="nav-icon">🔄</span>
+                <span>Commissions inter-opérateurs</span>
+            </a>
+            <a href="<?= base_url('operator/decompte') ?>" class="nav-link <?= ($current_page === 'decompte') ? 'active' : '' ?>">
+                <span class="nav-icon">📋</span>
+                <span>Décompte opérateur</span>
+            </a>
         </div>
     </nav>
 
