@@ -6,6 +6,15 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
+
+
+
+
+
+
+
+
+
 $routes->get('/', 'ClientController::login');
 $routes->post('client/loginProcess', 'ClientController::loginProcess');
 $routes->get('client/logout', 'ClientController::logout');
