@@ -2,23 +2,256 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mon Espace Client</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#F7F6F2;
+            --pink:#00BFFF;
+            --yellow:#FFC72C;
+            --purple:#C9BEFF;
+            --black:#0F0F10;
+            --gray:#6B6A70;
+        }
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family:'Inter' ,-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color:var(--black);
+            background:var(--bg);
+        }
+        a{ text-decoration:none; }
+
+        /* NAV */
+        .navbar{
+            background:#fff;
+            border-bottom:1px solid rgba(15,15,16,0.06);
+        }
+        .navbar-inner{
+            max-width:1120px;
+            margin:0 auto;
+            padding:16px 24px;
+            display:flex;
+            align-items:center;
+            gap:16px;
+        }
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-family: 'Inter';
+            font-weight:800;
+            font-size:1.1rem;
+            letter-spacing:-0.02em;
+        }
+        .brand-dot{
+            width:14px;height:14px;            background:var(--pink);
+        }
+        .numero-pill{
+            margin-left:8px;
+            background:var(--purple);
+            color:var(--black);
+            ;
+            padding:6px 16px;
+            font-weight:600;
+            font-size:0.85rem;
+        }
+        .btn-logout{
+            margin-left:auto;
+            border:1.5px solid rgba(15,15,16,0.15);
+            ;
+            padding:9px 18px;
+            font-weight:600;
+            font-size:0.85rem;
+            color:var(--black);
+            background:#fff;
+            transition:background .15s ease;
+        }
+        .btn-logout:hover{ background:#F1F0EC; }
+
+        /* CONTAINER */
+        .container{
+            max-width:1120px;
+            margin:0 auto;
+            padding:40px 24px 64px;
+        }
+
+        .alert{
+            
+            padding:12px 18px;
+            font-size:0.9rem;
+            margin-bottom:24px;
+            font-weight:500;
+        }
+        .alert-danger{
+            background:rgba(255,31,109,0.10);
+            color:#C4104F;
+            border:1px solid rgba(255,31,109,0.25);
+        }
+        .alert-success{
+            background:rgba(60,180,110,0.10);
+            color:#1F8F52;
+            border:1px solid rgba(60,180,110,0.25);
+        }
+
+        /* SOLDE */
+        .balance-card{
+            background:linear-gradient(135deg,var(--pink),#FF5A93);
+            color:#fff;
+            
+            padding:36px 40px;
+            margin-bottom:32px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:16px;
+        }
+        .balance-card .label{
+            font-size:0.95rem;
+            font-weight:600;
+            opacity:0.9;
+            margin:0 0 6px;
+        }
+        .balance-card .amount{
+            font-family: 'inter';
+            font-weight:800;
+            font-size:2.6rem;
+            letter-spacing:-0.02em;
+            margin:0;
+        }
+
+        /* ACTIONS */
+        .actions-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:20px;
+            margin-bottom:32px;
+        }
+        @media (max-width:860px){
+            .actions-grid{ grid-template-columns:1fr; }
+        }
+        .action-card{
+            
+            padding:26px;
+            display:flex;
+            flex-direction:column;
+        }
+        .action-card.depot{ background:var(--purple); }
+        .action-card.retrait{ background:var(--yellow); }
+        .action-card.transfert{ background:var(--black); color:#fff; }
+        .action-title{
+            font-family: 'inter';
+            font-weight:700;
+            font-size:1.1rem;
+            margin:0 0 18px;
+            letter-spacing:-0.01em;
+        }
+        .action-card label{
+            font-size:0.8rem;
+            font-weight:600;
+            margin-bottom:6px;
+            display:block;
+            opacity:0.85;
+        }
+        .form-control{
+            width:100%;
+            border:none;
+            
+            padding:12px 14px;
+            font-family:'Inter' ,-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size:0.95rem;
+            background:rgba(255,255,255,0.85);
+            outline:none;
+            margin-bottom:14px;
+        }
+        .action-card.transfert .form-control{
+            background:rgba(255,255,255,0.12);
+            color:#fff;
+        }
+        .action-card.transfert .form-control::placeholder{ color:rgba(255,255,255,0.5); }
+        .btn-action{
+            margin-top:auto;
+            border:none;
+            ;
+            padding:13px;
+            font-family: 'inter';
+            font-weight:700;
+            font-size:0.95rem;
+            cursor:pointer;
+            background:var(--black);
+            color:#fff;
+            transition:transform .12s ease;
+        }
+        .action-card.transfert .btn-action{
+            background:#fff;
+            color:var(--black);
+        }
+        .btn-action:hover{ transform:translateY(-1px); }
+
+        /* HISTORIQUE */
+        .history-card{
+            background:#fff;
+            
+            padding:8px 8px 4px;
+            border:1px solid rgba(15,15,16,0.06);
+        }
+        .history-header{
+            font-family: 'inter';
+            font-weight:700;
+            font-size:1.05rem;
+            padding:20px 24px 4px;
+        }
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+        thead th{
+            text-align:left;
+            font-size:0.75rem;
+            text-transform:uppercase;
+            letter-spacing:0.04em;
+            color:var(--gray);
+            font-weight:600;
+            padding:14px 24px;
+            border-bottom:1px solid rgba(15,15,16,0.06);
+        }
+        tbody td{
+            padding:16px 24px;
+            font-size:0.92rem;
+            border-bottom:1px solid rgba(15,15,16,0.05);
+        }
+        tbody tr:last-child td{ border-bottom:none; }
+        .badge{
+            display:inline-block;
+            ;
+            padding:5px 14px;
+            font-size:0.78rem;
+            font-weight:700;
+            background:var(--purple);
+            color:var(--black);
+        }
+        .empty-row{
+            text-align:center;
+            color:var(--gray);
+            padding:32px 24px;
+        }
+    </style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-    <div class="container">
-        <span class="navbar-brand">Mobile Money Client</span>
-        <span class="navbar-text text-white me-auto ms-3">
-            N° : <strong><?= esc($client['numero']) ?></strong>
-        </span>
-        <a href="<?= base_url('client/logout') ?>" class="btn btn-outline-light btn-sm">Déconnexion</a>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-inner">
+        <span class="brand"><span class="brand-dot"></span>Mobile Money</span>
+        <span class="numero-pill">N° <?= esc($client['numero']) ?></span>
+        <a href="<?= base_url('client/logout') ?>" class="btn-logout">Déconnexion</a>
     </div>
 </nav>
 
-<div class="container my-5">
+<div class="container">
 
-    <!-- Messages Flash -->
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
@@ -27,103 +260,77 @@
     <?php endif; ?>
 
     <!-- Solde -->
-    <div class="row mb-5">
-        <div class="col-md-12">
-            <div class="card shadow-sm text-white bg-success">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Solde Actuel</h5>
-                    <h2 class="display-4"><?= number_format($client['solde'], 2, ',', ' ') ?> Ar</h2>
-                </div>
-            </div>
+    <div class="balance-card">
+        <div>
+            <p class="label">Solde actuel</p>
+            <h2 class="amount"><?= number_format($client['solde'], 2, ',', ' ') ?> Ar</h2>
         </div>
     </div>
 
     <!-- Formulaires d'actions -->
-    <div class="row mb-4">
+    <div class="actions-grid">
         <!-- Dépôt -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">Dépôt (Automatique)</div>
-                <div class="card-body">
-                    <form action="<?= base_url('client/depot') ?>" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Montant (Ar)</label>
-                            <input type="number" step="0.01" name="montant" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Déposer</button>
-                    </form>
-                </div>
-            </div>
+        <div class="action-card depot">
+            <h3 class="action-title">Dépôt automatique</h3>
+            <form action="<?= base_url('client/depot') ?>" method="post">
+                <label>Montant (Ar)</label>
+                <input type="number" step="0.01" name="montant" class="form-control" required>
+                <button type="submit" class="btn-action">Déposer</button>
+            </form>
         </div>
 
         <!-- Retrait -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-warning text-dark">Retrait (Automatique)</div>
-                <div class="card-body">
-                    <form action="<?= base_url('client/retrait') ?>" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Montant (Ar)</label>
-                            <input type="number" step="0.01" name="montant" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-warning w-100">Retirer</button>
-                    </form>
-                </div>
-            </div>
+        <div class="action-card retrait">
+            <h3 class="action-title">Retrait automatique</h3>
+            <form action="<?= base_url('client/retrait') ?>" method="post">
+                <label>Montant (Ar)</label>
+                <input type="number" step="0.01" name="montant" class="form-control" required>
+                <button type="submit" class="btn-action">Retirer</button>
+            </form>
         </div>
 
         <!-- Transfert -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">Transfert</div>
-                <div class="card-body">
-                    <form action="<?= base_url('client/transfert') ?>" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">N° Destinataire</label>
-                            <input type="text" name="numero_dest" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Montant (Ar)</label>
-                            <input type="number" step="0.01" name="montant" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-info text-white w-100">Transférer</button>
-                    </form>
-                </div>
-            </div>
+        <div class="action-card transfert">
+            <h3 class="action-title">Transfert</h3>
+            <form action="<?= base_url('client/transfert') ?>" method="post">
+                <label>N° destinataire</label>
+                <input type="text" name="numero_dest" class="form-control" placeholder="ex : 0331234567" required>
+                <label>Montant (Ar)</label>
+                <input type="number" step="0.01" name="montant" class="form-control" required>
+                <button type="submit" class="btn-action">Transférer</button>
+            </form>
         </div>
     </div>
 
     <!-- Historique des opérations -->
-    <div class="card mb-4">
-        <div class="card-header">Historique des Opérations</div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
+    <div class="history-card">
+        <div class="history-header">Historique des opérations</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Montant</th>
+                    <th>Frais</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($historiques)): ?>
                     <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Montant</th>
-                        <th>Frais</th>
+                        <td colspan="4" class="empty-row">Aucune opération effectuée.</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($historiques)): ?>
+                <?php else: ?>
+                    <?php foreach ($historiques as $h): ?>
                         <tr>
-                            <td colspan="4" class="text-center">Aucune opération effectuée.</td>
+                            <td><?= $h['date_operation'] ?></td>
+                            <td><span class="badge"><?= ucfirst($h['type_nom']) ?></span></td>
+                            <td><?= number_format($h['montant'], 2, ',', ' ') ?> Ar</td>
+                            <td><?= number_format($h['frais'], 2, ',', ' ') ?> Ar</td>
                         </tr>
-                    <?php else: ?>
-                        <?php foreach ($historiques as $h): ?>
-                            <tr>
-                                <td><?= $h['date_operation'] ?></td>
-                                <td><span class="badge bg-secondary"><?= ucfirst($h['type_nom']) ?></span></td>
-                                <td><?= number_format($h['montant'], 2, ',', ' ') ?> Ar</td>
-                                <td><?= number_format($h['frais'], 2, ',', ' ') ?> Ar</td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 
 </div>
