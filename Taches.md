@@ -32,6 +32,8 @@
 ### Moi (côté opérateur):
 #### Controllers
 Creation Controller OperateurController:Pour manipuler les gains,les numeros des clients,gestion des prefixes,ajouter prefixe et Gestion des baremes de frais par tranches
+Creation de AuthController pour le login operateur et pour securiser les donnees et redirection vers view/operator/login 
+
 
 #### Models
 Creation de PrefixeModel.php pour parler a la base de donnees
@@ -50,7 +52,10 @@ creation des controller : pour manipiler le base pour le cote client ,chemin , l
 
 
 
-
+## NOTES:
+Pour entrer dans l'espace operateur
+# IDENTIFIANT: operateur
+# MOT DE PASSE : operateur123
 
 
 Herizo a pris la gestion du côté client.
