@@ -14,6 +14,7 @@ CREATE TABLE operateur (
 );
 
 INSERT INTO operateur (nom, code) VALUES ('Airtel', 'LOC'), ('Orange', 'OPA');
+INSERT INTO operateur (nom, code) VALUES ('Telma', 'TEL');
 
 CREATE TABLE prefixe (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
