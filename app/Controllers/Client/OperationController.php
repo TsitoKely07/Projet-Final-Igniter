@@ -59,93 +59,6 @@ class OperationController extends BaseClientController
         return redirect()->to('/client/dashboard')->with('success', 'Retrait effectué avec succès.');
     }
 
-    public function transfert()
-    {
-        if ($redirect = $this->checkAuth()) return $redirect;
-
-        $clientId = session()->get('client')['id'];
-        $clientNumero = session()->get('client')['numero'];
-        $destNumero = trim($this->request->getPost('numero_dest'));
-        $montant = (float) $this->request->getPost('montant');
-        $inclureFraisRetrait = (bool) $this->request->getPost('inclure_frais_retrait');
-
-        if ($montant <= 0) {
-            return redirect()->back()->with('error', 'Montant invalide.');
-        }
-
-        $destinataire = $this->db->table('compte_client')->where('numero', $destNumero)->get()->getRowArray();
-        
-        if (!$destinataire) {
-            return redirect()->back()->with('error', 'Numéro destinataire introuvable.');
-        }
-
-        if ($destinataire['id'] == $clientId) {
-            return redirect()->back()->with('error', 'Vous ne pouvez pas faire un transfert vers vous-même.');
-        }
-
-        // Détection opérateur source et destination
-        $operateurSource = $this->getOperateurFromNumero($clientNumero);
-        $operateurDest = $this->getOperateurFromNumero($destNumero);
-        $estInteroperateur = ($operateurSource !== null && $operateurDest !== null && $operateurSource !== $operateurDest);
-
-        // Calcul des frais de transfert
-        if ($estInteroperateur) {
-            // Transfert inter-opérateur : utiliser le barème externe si disponible, sinon standard
-            $fraisTransfert = $this->getFrais(3, $montant, $operateurDest);
-            
-            // Pas de frais de retrait pour les autres opérateurs
-            $fraisRetrait = 0.0;
-            $inclureFraisRetrait = false; // Force à false
-
-            // Calcul commission inter-opérateur (pourcentage du montant)
-            $pourcentageCommission = $this->getCommissionInteroperateur($operateurSource, $operateurDest);
-            $commissionMontant = $montant * ($pourcentageCommission / 100);
-        } else {
-            // Transfert interne (même opérateur ou générique)
-            $fraisTransfert = $this->getFrais(3, $montant);
-            $fraisRetrait = $inclureFraisRetrait ? $this->getFrais(2, $montant) : 0.0;
-            $commissionMontant = 0.0;
-            $operateurDest = null; // Pas d'opérateur destination spécifique
-        }
-
-        $totalFrais = $fraisTransfert + $fraisRetrait + $commissionMontant;
-        $totalAEnleverExpediteur = $montant + $totalFrais;
-        $montantCrediteDestinataire = $montant + $fraisRetrait;
-
-        $client = $this->db->table('compte_client')->where('id', $clientId)->get()->getRowArray();
-        if ($client['solde'] < $totalAEnleverExpediteur) {
-            $msg = "Solde insuffisant (Montant: {$montant} Ar + Frais: {$totalFrais} Ar";
-            if ($estInteroperateur) {
-                $msg .= " dont commission {$commissionMontant} Ar";
-            }
-            $msg .= ").";
-            return redirect()->back()->with('error', $msg);
-        }
-
-        // Transaction : Débit expéditeur & Crédit destinataire
-        $this->db->query("UPDATE compte_client SET solde = solde - ? WHERE id = ?", [$totalAEnleverExpediteur, $clientId]);
-        $this->db->query("UPDATE compte_client SET solde = solde + ? WHERE id = ?", [$montantCrediteDestinataire, $destinataire['id']]);
-
-        // Historique des frais payés
-        $fraisTotauxEnregistres = $fraisTransfert + $fraisRetrait + $commissionMontant;
-
-        $this->db->table('historique_operation')->insert([
-            'id_compte_source'      => $clientId,
-            'id_compte_dest'        => $destinataire['id'],
-            'id_type_operation'     => 3,
-            'montant'               => $montant,
-            'frais'                 => $fraisTotauxEnregistres,
-            'id_operateur_destination' => $operateurDest,
-            'frais_retrait_inclus'  => $inclureFraisRetrait ? 1 : 0
-        ]);
-
-        $msg = 'Transfert réussi !';
-        if ($estInteroperateur) {
-            $msg .= " (Transfert inter-opérateur, commission: {$pourcentageCommission}%)";
-        }
-        return redirect()->to('/client/dashboard')->with('success', $msg);
-    }
-
     public function transfertMultiple()
     {
         if ($redirect = $this->checkAuth()) return $redirect;
@@ -158,7 +71,7 @@ class OperationController extends BaseClientController
         $num1 = trim((string) $this->request->getPost('numero_dest_1'));
         $num2 = trim((string) $this->request->getPost('numero_dest_2'));
 
-        // Si la vue envoie un champ 'numeros' sous forme de liste (fallback)
+        // Fallback si la vue envoie un champ 'numeros' sous forme de liste
         if (empty($num1) && empty($num2)) {
             $rawNumeros = $this->request->getPost('numeros');
             $listeNumeros = array_unique(array_filter(array_map('trim', preg_split('/[\s,]+/', (string)$rawNumeros))));
@@ -166,7 +79,7 @@ class OperationController extends BaseClientController
             $listeNumeros = array_unique(array_filter([$num1, $num2]));
         }
 
-        // 2. Récupération du montant (compatible 'montant' et 'montant_total')
+        // 2. Récupération du montant et de l'option frais de retrait
         $montantInput = $this->request->getPost('montant') ?? $this->request->getPost('montant_total');
         $montantParPersonne = (float) $montantInput;
         $inclureFraisRetrait = (bool) $this->request->getPost('inclure_frais_retrait');
@@ -199,7 +112,7 @@ class OperationController extends BaseClientController
             }
         }
 
-        // 4. Pré-calcul des coûts et commissions pour chaque destinataire
+        // 4. Pré-calcul des coûts, frais et commissions pour chaque destinataire
         $coutTotalGlobal = 0.0;
         $detailsTransactions = [];
 
@@ -208,16 +121,25 @@ class OperationController extends BaseClientController
             $estInterop = ($operateurSource !== null && $operateurDest !== null && $operateurSource !== $operateurDest);
 
             if ($estInterop) {
-                // Inter-opérateur : commission (1% ou configurée) + pas de frais de retrait
+                // --- AUTRE OPÉRATEUR ---
+                // Frais de transfert inter-opérateur
                 $fraisTransfert = $this->getFrais(3, $montantParPersonne, $operateurDest);
+                
+                // Aucun frais de retrait pour les autres opérateurs
                 $fraisRetrait = 0.0;
 
+                // Commission de 1% (ou taux configuré)
                 $pourcentageComm = $this->getCommissionInteroperateur($operateurSource, $operateurDest);
                 $commission = ($pourcentageComm > 0) ? ($montantParPersonne * ($pourcentageComm / 100)) : ($montantParPersonne * 0.01);
             } else {
-                // Même opérateur : Frais de transfert standards + Frais de retrait optionnels
+                // --- MÊME OPÉRATEUR ---
+                // Frais de transfert standards
                 $fraisTransfert = $this->getFrais(3, $montantParPersonne);
+                
+                // Frais de retrait optionnels
                 $fraisRetrait = $inclureFraisRetrait ? $this->getFrais(2, $montantParPersonne) : 0.0;
+                
+                // Aucune commission
                 $commission = 0.0;
             }
 
@@ -227,22 +149,24 @@ class OperationController extends BaseClientController
             $coutTotalGlobal += $coutUnitaireExpediteur;
 
             $detailsTransactions[] = [
-                'dest'                  => $dest,
-                'operateur_dest'        => $operateurDest,
-                'est_interop'           => $estInterop,
-                'frais_totaux'          => $fraisTotauxUnitaires,
-                'frais_retrait'         => $fraisRetrait,
-                'cout_unitaire'         => $coutUnitaireExpediteur,
+                'dest'           => $dest,
+                'operateur_dest' => $operateurDest,
+                'est_interop'    => $estInterop,
+                'frais_totaux'   => $fraisTotauxUnitaires,
+                'frais_retrait'  => $fraisRetrait,
+                'cout_unitaire'  => $coutUnitaireExpediteur,
             ];
         }
 
-        // Vérification du solde global
+        // Vérification du solde global de l'expéditeur
         $client = $this->db->table('compte_client')->where('id', $clientId)->get()->getRowArray();
         if ($client['solde'] < $coutTotalGlobal) {
             return redirect()->back()->with('error', "Solde insuffisant pour exécuter cet envoi multiple. Montant total requis (avec frais et commissions) : " . number_format($coutTotalGlobal, 2, ',', ' ') . " Ar.");
         }
 
-        // 5. Exécution des débits, crédits et enregistrement de l'historique
+        // 5. Exécution sécurisée des débits, crédits et enregistrement (Transaction SQL)
+        $this->db->transStart();
+
         foreach ($detailsTransactions as $item) {
             $dest = $item['dest'];
             $montantCredite = $montantParPersonne + $item['frais_retrait'];
@@ -253,7 +177,7 @@ class OperationController extends BaseClientController
             // Crédit du destinataire
             $this->db->query("UPDATE compte_client SET solde = solde + ? WHERE id = ?", [$montantCredite, $dest['id']]);
 
-            // Insertion dans la table historique_operation
+            // Enregistrement dans l'historique
             $this->db->table('historique_operation')->insert([
                 'id_compte_source'         => $clientId,
                 'id_compte_dest'           => $dest['id'],
@@ -265,10 +189,17 @@ class OperationController extends BaseClientController
             ]);
         }
 
+        $this->db->transComplete();
+
+        // Si une erreur SQL survient, la transaction est automatiquement annulée (rollback)
+        if ($this->db->transStatus() === false) {
+            return redirect()->back()->with('error', "Une erreur est survenue lors du traitement de la transaction. Aucune somme n'a été débitée.");
+        }
+
         $montantAffiche = number_format($montantParPersonne, 2, ',', ' ');
         $msg = "Transfert multiple de {$montantAffiche} Ar réussi vers les 2 destinataires !";
         if ($estInteroperateurGlobal) {
-            $msg .= " (Commission inter-opérateur appliquée).";
+            $msg .= " (Commission inter-opérateur appliquée sur les numéros externes).";
         }
 
         return redirect()->to('/client/dashboard')->with('success', $msg);
