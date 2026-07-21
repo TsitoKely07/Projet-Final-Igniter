@@ -145,7 +145,7 @@ class OperationController extends BaseClientController
 
             $fraisTotauxUnitaires = $fraisTransfert + $fraisRetrait + $commission;
             $coutUnitaireExpediteur = $montantParPersonne + $fraisTotauxUnitaires;
-
+    
             $coutTotalGlobal += $coutUnitaireExpediteur;
 
             $detailsTransactions[] = [

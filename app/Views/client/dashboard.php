@@ -337,9 +337,12 @@
         <button class="tab-btn" data-tab="retrait">Retrait</button>
         <button class="tab-btn" data-tab="transfert">Transfert Simple</button>
         <button class="tab-btn" data-tab="transfert-multiple">Transfert Multiple</button>
+        <button class="tab-btn" data-tab="epargne">Epargne</button>
+       
     </div>
 
     <!-- CONTENEURS DE FORMULAIRES -->
+
     <div class="actions-wrapper">
         <!-- Dépôt -->
         <div class="action-card depot active" id="tab-depot">
@@ -348,6 +351,15 @@
                 <label>Montant (Ar)</label>
                 <input type="number" step="0.01" name="montant" class="form-control" placeholder="Ex: 10000" required>
                 <button type="submit" class="btn-action">Valider le dépôt</button>
+            </form>
+        </div>
+        <!-- Epargne -->
+        <div class="action-card epargne active" id="tab-epargne">
+            <h3 class="action-title">Epargne</h3>
+            <form action="<?= base_url('client/epargne') ?>" method="post">
+                <label>%</label>
+                <input type="number" step="0.01" name="montant" class="form-control" placeholder="Ex: 5%" required>
+                <button type="submit" class="btn-action">Choix d epargne </button>
             </form>
         </div>
 
@@ -403,6 +415,8 @@
             </form>
         </div>
     </div>
+      
+        
 
     <!-- Historique des opérations -->
     <div class="history-card">
